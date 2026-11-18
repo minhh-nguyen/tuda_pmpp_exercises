@@ -18,4 +18,7 @@
 module purge
 module load cuda/12.9 gcc/13.4
 mkdir -p out
+rm -rf build
+mkdir -p build
+g++ src/pmpp_ex1/main.cpp -o build/pmpp_ex1
 ./build/pmpp_ex1

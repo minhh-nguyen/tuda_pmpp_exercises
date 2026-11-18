@@ -8,9 +8,8 @@ unsigned int compute_dim(std::uint64_t global_size, int block_size)
 
 __global__ void gray_scale_kernel(
 	std::uint32_t* dst_data,
-	std::uint32_t* src_data, 
-	std::uint64_t w, std::uint64_t h
-)
+	std::uint32_t* src_data,
+	std::uint64_t w, std::uint64_t h)
 {
 	//TODO: 1.2) Implement conversion
 }
@@ -24,12 +23,11 @@ void to_grayscale(gpu_image& dst, gpu_image const& src)
 
 __global__ void convolution_kernel(
 	std::uint32_t* dst_data,
-	std::uint32_t* src_data, 
-	std::uint64_t w, std::uint64_t h, 
+	std::uint32_t* src_data,
+	std::uint64_t w, std::uint64_t h,
 	float* filter_data,
 	std::uint64_t fw, std::uint64_t fh,
-	bool use_abs_value
-)
+	bool use_abs_value)
 {
 	//TODO: 1.3) Implement convolution
 }
@@ -46,8 +44,7 @@ __global__ void histogram_kernel(
 	std::uint32_t* hist_data,
 	std::uint32_t* img_data,
 	std::uint64_t w, std::uint64_t h,
-	std::uint8_t channel_flags = 1
-)
+	std::uint8_t channel_flags = 1)
 {
 	//TODO: 1.4) Implement histogram computation
 }

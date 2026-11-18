@@ -1,0 +1,36 @@
+# Style used by the original exercise sources (tabs, braces on their own line,
+# left-aligned pointers/references, long lines left unwrapped).
+# clang-format discovers this file by walking up from the source file, so it
+# applies to every .cu/.cpp/.h in the repo — including format-on-save in editors.
+
+BasedOnStyle: LLVM
+
+# Indentation: real tabs, width 4 (matches CMakeLists.txt and the sources).
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+
+# Allman braces: opening brace on the next line.
+BreakBeforeBraces: Allman
+
+# `std::uint32_t* p`, `image const& img`.
+PointerAlignment: Left
+
+# `{ 32, 32 }` instead of `{32, 32}`.
+Cpp11BracedListStyle: false
+
+# Don't reflow long lines; the sources keep them on one line.
+ColumnLimit: 0
+
+# Keep the blank-line grouping used in the sources.
+MaxEmptyLinesToKeep: 2
+
+# Preserve the hand-written include order and `if(...)`, `for(...)`, `template<...>`.
+SortIncludes: false
+SpaceBeforeParens: Never
+SpaceAfterTemplateKeyword: false
+
+# Keep `//TODO:` exactly as written (no inserted space after //).
+SpacesInLineCommentPrefix:
+  Minimum: 0
+  Maximum: 0
