@@ -11,7 +11,11 @@ cpu_matrix<T> make_cpu_matrix(std::uint64_t width, std::uint64_t height)
 	img.width = width;
 	img.height = height;
 	//TODO: 1.1a) Allocate host memory
-	//img.data =
+	// Implement the creation of empty matrices in the functions
+	// • make_cpu_matrix in src/image.cpp
+	// • make_gpu_matrix in src/image.cpp
+	// Note: Use the wrappers to allocate memory
+	img.data = make_host_array<T>(width * height);
 	return img;
 }
 
@@ -26,7 +30,12 @@ gpu_matrix<T> make_gpu_matrix(std::uint64_t width, std::uint64_t height)
 	img.width = width;
 	img.height = height;
 	//TODO: 1.1a) Allocate device memory
-	//img.data =
+	// Implement the creation of empty matrices in the functions
+	// • make_cpu_matrix in src/image.cpp
+	// • make_gpu_matrix in src/image.cpp
+	// Note: Use the wrappers to allocate memory
+	//
+	img.data = make_host_array<T>(width * length);
 	return img;
 }
 
@@ -41,6 +50,7 @@ gpu_matrix<T> to_gpu(cpu_matrix<T> const& img)
 	cpy.width = img.width;
 	cpy.height = img.height;
 	//TODO: 1.1b) Allocate and copy to device memory
+	// cpy.data =
 	return cpy;
 }
 
@@ -55,6 +65,7 @@ cpu_matrix<T> to_cpu(gpu_matrix<T> const& img)
 	cpy.width = img.width;
 	cpy.height = img.height;
 	//TODO: 1.1b) Allocate and copy to device memory
+	// cpy.data =
 	return cpy;
 }
 

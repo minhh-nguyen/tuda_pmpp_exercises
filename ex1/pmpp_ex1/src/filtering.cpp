@@ -71,7 +71,6 @@ void apply_convolution(cpu_image& dst, cpu_image const& src, cpu_filter const& f
 			dst.data[x_index + y_index * w] = (rn) | (gn << 8) | (bn << 16);
 		}
 	}
-
 }
 
 
@@ -104,10 +103,10 @@ void compute_histogram(cpu_matrix<std::uint32_t>& hist, cpu_image const& img)
 void draw_histogram(cpu_image const& img, cpu_matrix<std::uint32_t>& hist, std::uint32_t scale)
 {
 	auto col = img.width / num_bins;
-	
+
 	for(std::uint64_t i = 0; i < num_bins; ++i)
 	{
-		for(std::uint64_t x_index = i * col; x_index < std::min(img.width, (i+1)*col); ++x_index)
+		for(std::uint64_t x_index = i * col; x_index < std::min(img.width, (i + 1) * col); ++x_index)
 		{
 			auto h = std::min(static_cast<std::uint32_t>(img.height), hist.data[i] / scale);
 			for(std::uint64_t y_index = 0; y_index < h; ++y_index)

@@ -94,7 +94,7 @@ cpu_matrix<std::uint32_t> create_histogram(cpu_image const& img)
 {
 	auto hist_cpu = make_cpu_matrix<std::uint32_t>(num_bins, 1);
 	compute_histogram(hist_cpu, img);
-	
+
 	return hist_cpu;
 }
 gpu_matrix<std::uint32_t> create_histogram(gpu_image const& img)
@@ -131,7 +131,7 @@ int main()
 	auto base_gpu = to_gpu(base_cpu);
 	save("out/cornell_gpu_unchanged.ppm", base_gpu);
 	log(log_level::INFO, "GPU\n");
-	
+
 	log(log_level::INFO, "Converting image to grayscale...");
 	auto gray_cpu = create_grayscale(base_cpu);
 	save("out/cornell_cpu_grayscale.ppm", gray_cpu);
@@ -139,8 +139,8 @@ int main()
 	auto gray_gpu = create_grayscale(base_gpu);
 	save("out/cornell_gpu_grayscale.ppm", gray_gpu);
 	log(log_level::INFO, "GPU\n");
-	
-	
+
+
 	log(log_level::INFO, "Filtering image (h)...");
 	auto filtered_h_cpu = create_edgedetect(gray_cpu, true);
 	save("out/cornell_cpu_filtered_h.ppm", filtered_h_cpu);
@@ -156,7 +156,7 @@ int main()
 	auto filtered_v_gpu = create_edgedetect(gray_gpu, false);
 	save("out/cornell_gpu_filtered_v.ppm", filtered_v_gpu);
 	log(log_level::INFO, "GPU\n");
-	
+
 	log(log_level::INFO, "Computing histogram...");
 	auto hist_cpu = create_histogram(base_cpu);
 	auto plot_cpu = make_cpu_image(1024, 1024);
