@@ -35,7 +35,7 @@ gpu_matrix<T> make_gpu_matrix(std::uint64_t width, std::uint64_t height)
 	// • make_gpu_matrix in src/image.cpp
 	// Note: Use the wrappers to allocate memory
 	//
-	img.data = make_host_array<T>(width * length);
+	img.data = make_managed_cuda_array<T>(width * height);
 	return img;
 }
 
@@ -51,6 +51,9 @@ gpu_matrix<T> to_gpu(cpu_matrix<T> const& img)
 	cpy.height = img.height;
 	//TODO: 1.1b) Allocate and copy to device memory
 	// cpy.data =
+	cpy.data = make_managed_cuda_array<T>(img.width * img.height);
+	auto num_byte = img.width * img.height * sizeof(T);
+	cudaMemcpy(cpy.data.get(), img.data.get(), num_byte, cudaMemcpyHostToDevice);
 	return cpy;
 }
 
@@ -66,6 +69,9 @@ cpu_matrix<T> to_cpu(gpu_matrix<T> const& img)
 	cpy.height = img.height;
 	//TODO: 1.1b) Allocate and copy to device memory
 	// cpy.data =
+	cpy.data = make_host_array<T>(img.width * img.height);
+	auto num_byte = img.width * img.height * sizeof(T);
+	cudaMemcpy(cpy.data.get(), img.data.get(), num_byte, cudaMemcpyDeviceToHost);
 	return cpy;
 }
 
