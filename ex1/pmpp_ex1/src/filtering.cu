@@ -46,7 +46,55 @@ __global__ void convolution_kernel(
 	bool use_abs_value)
 {
 	//TODO: 1.3) Implement convolution
+
+	float rf = 0.f;
+	float gf = 0.f;
+	float bf = 0.f;
+
+	int64_t x_offset = fw / 2;
+	int64_t y_offset = fh / 2;
+
+	int64_t x_index = (blockIdx.x * blockDim.x) + threadIdx.x;
+	int64_t y_index = (blockIdx.y * blockDim.y) + threadIdx.y;
+
+	if(x_index >= w || y_index >= h)
+		return;
+
+	int64_t x_idx = x_index - x_offset;
+	int64_t y_idx = y_index - y_offset;
+
+	for(int64_t i = 0; i < fw; ++i)
+	{
+		for(int64_t j = 0; j < fh; ++j)
+		{
+			int64_t x = std::max<int64_t>(0, std::min((x_idx + i), static_cast<int64_t>(w - 1)));
+			int64_t y = std::max<int64_t>(0, std::min((y_idx + j), static_cast<int64_t>(h - 1)));
+			uint32_t pixel = src_data[x + y * w];
+			unsigned char r = pixel & 0xff;
+			unsigned char g = (pixel >> 8) & 0xff;
+			unsigned char b = (pixel >> 16) & 0xff;
+
+			float weight = filter_data[i + j * fw];
+			rf += static_cast<float>(r) * weight;
+			gf += static_cast<float>(g) * weight;
+			bf += static_cast<float>(b) * weight;
+		}
+	}
+
+	if(use_abs_value)
+	{
+		rf = abs(rf) / 2.f;
+		gf = abs(gf) / 2.f;
+		bf = abs(bf) / 2.f;
+	}
+
+	unsigned char rn = static_cast<unsigned char>(rf + 0.5f);
+	unsigned char gn = static_cast<unsigned char>(gf + 0.5f);
+	unsigned char bn = static_cast<unsigned char>(bf + 0.5f);
+
+	dst_data[x_index + y_index * w] = (rn) | (gn << 8) | (bn << 16);
 }
+
 void apply_convolution(gpu_image& dst, gpu_image const& src, gpu_filter const& filter, bool use_abs_value)
 {
 	dim3 block_size = { 32, 32 };

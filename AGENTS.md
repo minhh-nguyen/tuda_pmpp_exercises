@@ -10,6 +10,7 @@ This repo is a university CUDA exercise. The user is learning CUDA, so:
 - Tooling help (build scripts, CMake, editor, git) is fine. Solving exercise steps is not.
 - Read the actual files before commenting on their code — do not assume what they implemented from earlier context.
 - Mirror the user's language (Vietnamese or English).
+- In order to study, all study contents in `learn` directory need to be generated carefully and give full details
 
 ## Repo layout
 

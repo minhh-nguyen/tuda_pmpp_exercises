@@ -20,5 +20,5 @@ module load cuda/12.9 gcc/13.4
 mkdir -p out
 rm -rf build
 mkdir -p build
-nvcc -std=c++20 src/*.cpp src/*.cu -o build/pmpp_ex1
+nvcc -std=c++20 --expt-relaxed-constexpr src/*.cpp src/*.cu -o build/pmpp_ex1
 # ./build/pmpp_ex1
