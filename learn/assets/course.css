@@ -1,0 +1,260 @@
+/* course.css — stylesheet dùng chung cho mọi lesson trong learn/
+   Mục tiêu: dễ đọc trên màn hình, in ra vẫn đẹp (Tufte-ish), không cần font ngoài. */
+
+:root {
+	--ink: #1c1b19;
+	--muted: #6d6862;
+	--rule: #dcd7cd;
+	--paper: #fdfcf8;
+	--accent: #7a3b2e;
+	--accent-soft: #f4ece8;
+	--ok: #2f6b4f;
+	--ok-soft: #eaf2ed;
+	--warn: #8a6410;
+	--warn-soft: #fbf4e2;
+	--code-bg: #f2efe8;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 18px; }
+
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+	line-height: 1.65;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+	max-width: 44rem;
+	margin: 0 auto;
+	padding: 3rem 1.5rem 5rem;
+}
+
+.breadcrumb {
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 0.72rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--rule); }
+.breadcrumb a:hover { color: var(--accent); border-color: var(--accent); }
+
+h1 {
+	font-size: 2.15rem;
+	line-height: 1.15;
+	font-weight: 600;
+	margin: 0 0 0.6rem;
+	letter-spacing: -0.01em;
+}
+
+.lede {
+	font-size: 1.12rem;
+	color: var(--muted);
+	font-style: italic;
+	margin: 0 0 2rem;
+	max-width: 38rem;
+}
+
+h2 {
+	font-size: 1.28rem;
+	font-weight: 600;
+	margin: 2.8rem 0 0.9rem;
+	padding-top: 0.9rem;
+	border-top: 1px solid var(--rule);
+}
+
+h3 {
+	font-size: 1.02rem;
+	font-weight: 600;
+	margin: 1.8rem 0 0.5rem;
+}
+
+p { margin: 0 0 1rem; }
+
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(122, 59, 46, 0.35); }
+a:hover { border-bottom-color: var(--accent); }
+
+ul, ol { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.4rem; }
+
+strong { font-weight: 600; }
+
+code, kbd {
+	font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	font-size: 0.86em;
+	background: var(--code-bg);
+	padding: 0.08em 0.3em;
+	border-radius: 3px;
+}
+
+pre {
+	background: var(--code-bg);
+	border-left: 3px solid var(--rule);
+	padding: 0.9rem 1.1rem;
+	overflow-x: auto;
+	font-size: 0.84rem;
+	line-height: 1.5;
+	margin: 0 0 1.2rem;
+}
+pre code { background: none; padding: 0; }
+
+.win {
+	background: var(--accent-soft);
+	border-left: 4px solid var(--accent);
+	padding: 1rem 1.2rem;
+	margin: 0 0 2rem;
+	font-size: 0.98rem;
+}
+.win .label {
+	display: block;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 0.68rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--accent);
+	margin-bottom: 0.35rem;
+}
+
+.note, .warn {
+	padding: 0.85rem 1.1rem;
+	margin: 0 0 1.2rem;
+	font-size: 0.95rem;
+	border-left: 4px solid;
+}
+.note { background: var(--ok-soft); border-color: var(--ok); }
+.warn { background: var(--warn-soft); border-color: var(--warn); }
+.note .label, .warn .label {
+	display: block;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 0.68rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	margin-bottom: 0.3rem;
+}
+.note .label { color: var(--ok); }
+.warn .label { color: var(--warn); }
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.92rem;
+	margin: 0 0 1.4rem;
+	font-variant-numeric: tabular-nums;
+}
+th, td {
+	text-align: left;
+	padding: 0.45rem 0.6rem;
+	border-bottom: 1px solid var(--rule);
+	vertical-align: top;
+}
+th {
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 0.7rem;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--muted);
+	border-bottom: 1.5px solid var(--muted);
+}
+tbody tr:last-child td { border-bottom: none; }
+
+.math {
+	display: block;
+	text-align: center;
+	font-size: 1.05rem;
+	margin: 1.2rem 0;
+	padding: 0.9rem;
+	background: var(--code-bg);
+	border-radius: 4px;
+	font-variant-numeric: tabular-nums;
+}
+
+.quiz {
+	margin: 1.4rem 0 2rem;
+	padding: 1.1rem 1.2rem;
+	background: #fff;
+	border: 1px solid var(--rule);
+	border-radius: 4px;
+}
+.quiz .q { font-weight: 600; margin-bottom: 0.7rem; }
+.quiz ol { list-style: upper-alpha; margin-bottom: 0.6rem; }
+.quiz li { margin-bottom: 0.25rem; }
+
+details {
+	margin: 0.6rem 0 1.6rem;
+	border: 1px solid var(--rule);
+	border-radius: 4px;
+	background: #fff;
+}
+details > summary {
+	cursor: pointer;
+	padding: 0.6rem 0.9rem;
+	font-size: 0.88rem;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	color: var(--accent);
+	letter-spacing: 0.02em;
+	list-style: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸ "; }
+details[open] > summary::before { content: "▾ "; }
+details > .body {
+	padding: 0.2rem 1rem 1rem;
+	border-top: 1px solid var(--rule);
+	font-size: 0.95rem;
+}
+details > .body > :first-child { margin-top: 0.8rem; }
+
+.figure {
+	margin: 1.4rem 0;
+	padding: 1rem;
+	background: #fff;
+	border: 1px solid var(--rule);
+	border-radius: 4px;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 0.78rem;
+	line-height: 1.4;
+	white-space: pre;
+	overflow-x: auto;
+	color: var(--muted);
+}
+.figure .hl { color: var(--accent); font-weight: 600; }
+
+footer {
+	margin-top: 4rem;
+	padding-top: 1.2rem;
+	border-top: 1px solid var(--rule);
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+.pill {
+	display: inline-block;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 0.66rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	border: 1px solid var(--rule);
+	border-radius: 999px;
+	padding: 0.12rem 0.55rem;
+	margin-right: 0.4rem;
+}
+
+@media print {
+	html { font-size: 11pt; }
+	body { background: #fff; }
+	.wrap { max-width: none; padding: 0; }
+	.breadcrumb, footer { display: none; }
+	details { break-inside: avoid; }
+	details > summary { display: none; }
+	details > .body { border-top: none; }
+	h2 { break-after: avoid; }
+	a { color: var(--ink); border-bottom: none; }
+}

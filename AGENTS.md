@@ -32,6 +32,12 @@ This repo is a university CUDA exercise. The user is learning CUDA, so:
 - Warnings are fatal: host code is built with `-Wall -Wextra -Wpedantic -Werror`, CUDA with `-Werror=all-warnings`.
 - `build/` and `out/` are untracked artifacts (only `.DS_Store` is gitignored) — never commit them.
 
+## Teaching workspace (`learn/`)
+
+- `learn/` holds the learning material: `MISSION.md`, `RESOURCES.md`, `NOTES.md`, `lessons/*.html`, `reference/*.html`, `learning-records/*.md`, shared `assets/course.css`.
+- Lessons are self-contained HTML in Vietnamese with English terms in parentheses. They teach concepts and never contain the exercise solution.
+- Update `learn/learning-records/` only when the user demonstrates understanding or a misconception is corrected, not after every session.
+
 ## Formatting
 
 - `.clang-format` at the repo root is authoritative: tabs, Allman braces, `ColumnLimit: 0`, no include sorting, `if(` without space. Editor format-on-save already applies it.

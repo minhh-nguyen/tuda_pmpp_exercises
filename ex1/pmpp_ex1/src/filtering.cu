@@ -12,7 +12,23 @@ __global__ void gray_scale_kernel(
 	std::uint64_t w, std::uint64_t h)
 {
 	//TODO: 1.2) Implement conversion
+	auto pos_x = (blockIdx.x * blockDim.x) + threadIdx.x;
+	auto pos_y = (blockIdx.y * blockDim.y) + threadIdx.y;
+
+	if(pos_x >= w || pos_y >= h)
+		return;
+
+	auto pixel = src_data[pos_x + pos_y * w];
+	unsigned char r = pixel & 0xff;
+	unsigned char g = (pixel >> 8) & 0xff;
+	unsigned char b = (pixel >> 16) & 0xff;
+
+	float f = 0.2126f * static_cast<float>(r) + 0.7152f * static_cast<float>(g) + 0.0722f * static_cast<float>(b);
+	unsigned char l = static_cast<unsigned char>(f + 0.5f);
+
+	dst_data[pos_x + pos_y * w] = (l) | (l << 8) | (l << 16);
 }
+
 void to_grayscale(gpu_image& dst, gpu_image const& src)
 {
 	dim3 block_size = { 32, 32 };

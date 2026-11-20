@@ -1,6 +1,0 @@
-CompileFlags:
-    Add:
-        - -xcuda
-        - --cuda-path=/home/ubuntu/.local/lib/python3.14/site-packages/nvidia/cuda_runtime
-        - -I/home/ubuntu/.local/lib/python3.14/site-packages/nvidia/cuda_runtime/include
-        - --cuda-gpu-arch=sm_70

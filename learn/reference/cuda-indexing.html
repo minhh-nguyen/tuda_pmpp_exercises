@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cheat sheet — CUDA indexing &amp; bounds</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="wrap">
+
+<nav class="breadcrumb">
+	<a href="../MISSION.md">learn</a> / reference / cuda-indexing
+</nav>
+
+<h1>CUDA indexing &amp; bounds</h1>
+<p class="lede">Tra cứu nhanh: từ cấu hình launch ra toạ độ, ra địa chỉ, và khi nào phải chặn thread. Bài giảng tương ứng: <a href="../lessons/0001-thread-index-va-bounds.html">Lesson 0001</a>.</p>
+
+<h2>Biến có sẵn trong kernel</h2>
+
+<table>
+	<thead><tr><th>Biến</th><th>Kiểu</th><th>Nghĩa</th><th>Giá trị</th></tr></thead>
+	<tbody>
+		<tr><td><code>threadIdx.{x,y,z}</code></td><td><code>uint</code></td><td>Toạ độ trong block</td><td><code>0 … blockDim-1</code></td></tr>
+		<tr><td><code>blockIdx.{x,y,z}</code></td><td><code>uint</code></td><td>Toạ độ block trong grid</td><td><code>0 … gridDim-1</code></td></tr>
+		<tr><td><code>blockDim.{x,y,z}</code></td><td><code>uint</code></td><td>Số thread mỗi block</td><td>do lúc launch</td></tr>
+		<tr><td><code>gridDim.{x,y,z}</code></td><td><code>uint</code></td><td>Số block mỗi grid</td><td>do lúc launch</td></tr>
+		<tr><td><code>warpSize</code></td><td><code>int</code></td><td>Số thread mỗi warp</td><td><code>32</code> trên mọi GPU hiện hành</td></tr>
+	</tbody>
+</table>
+
+<h2>Toạ độ toàn cục</h2>
+
+<span class="math">x = blockIdx.x · blockDim.x + threadIdx.x<br>y = blockIdx.y · blockDim.y + threadIdx.y</span>
+
+<p>Dạng 1 chiều (khi launch <code>grid = ceil(N/block)</code>):</p>
+
+<span class="math">i = blockIdx.x · blockDim.x + threadIdx.x</span>
+
+<h2>Cấu hình launch</h2>
+
+<table>
+	<thead><tr><th>Tình huống</th><th>block</th><th>grid</th></tr></thead>
+	<tbody>
+		<tr><td>Mảng 1 chiều N phần tử</td><td><code>256</code> (hoặc 128/512)</td><td><code>ceil(N / block.x)</code></td></tr>
+		<tr><td>Ảnh w×h, mỗi thread 1 pixel</td><td><code>32 × 32</code></td><td><code>ceil(w/32) × ceil(h/32)</code></td></tr>
+		<tr><td>Ảnh, block 1 chiều</td><td><code>256</code></td><td><code>ceil(w·h / 256)</code></td></tr>
+	</tbody>
+</table>
+
+<p>Công thức làm tròn lên, viết bằng số nguyên:</p>
+
+<span class="math">grid = (N + block − 1) / block</span>
+
+<h2>Bounds check</h2>
+
+<div class="note">
+	<span class="label">Quy tắc</span>
+	Vì grid được làm tròn <em>lên</em>, luôn tồn tại thread có toạ độ vượt kích thước thật. Thread đó phải dừng trước khi đọc/ghi.
+</div>
+
+<ul>
+	<li>Điều kiện: <code>x ≥ w</code> <strong>hoặc</strong> <code>y ≥ h</code> → <code>return</code>.</li>
+	<li>Không kiểm tra con trỏ — con trỏ không phải kích thước.</li>
+	<li>Không dùng biến "ma" như <code>numRows</code>/<code>numCols</code>: kernel chỉ có những gì được truyền vào.</li>
+	<li>Trong vòng lặp stride (grid-stride loop), điều kiện là <code>i &lt; N</code>, không phải <code>≥</code>.</li>
+</ul>
+
+<h2>Địa chỉ bộ nhớ (row-major)</h2>
+
+<span class="math">idx = x + y · w &nbsp;&nbsp;&nbsp;(w = số cột, không phải số byte)</span>
+
+<table>
+	<thead><tr><th>Biểu thức</th><th>Ý nghĩa</th><th>Dùng khi</th></tr></thead>
+	<tbody>
+		<tr><td><code>data[x + y*w]</code></td><td>pixel (x,y)</td><td>truy cập theo toạ độ</td></tr>
+		<tr><td><code>data[i]</code></td><td>phần tử thứ i</td><td>mảng 1 chiều, hoặc đã đổi toạ độ</td></tr>
+		<tr><td><code>x + y*w</code></td><td>chỉ số tuyến tính</td><td>so sánh với <code>w*h</code></td></tr>
+	</tbody>
+</table>
+
+<h2>Coalescing — một dòng</h2>
+
+<p>Thread có <code>threadIdx.x</code> liên tiếp nên chạm các địa chỉ liên tiếp; nếu trục nhanh nhất của bạn đi theo chiều dọc ảnh, mỗi warp tạo ra nhiều transaction bộ nhớ thay vì một.</p>
+
+<h2>Ví dụ số: 4032 × 3024, block 32×32</h2>
+
+<table>
+	<thead><tr><th>Đại lượng</th><th>Giá trị</th></tr></thead>
+	<tbody>
+		<tr><td><code>grid.x</code></td><td>126 (4032 chia hết)</td></tr>
+		<tr><td><code>grid.y</code></td><td>95 (3024/32 = 94,5)</td></tr>
+		<tr><td>Hàng thread thực tế</td><td>3040</td></tr>
+		<tr><td>Hàng dư</td><td>16 → 64.512 thread dư</td></tr>
+		<tr><td>Tổng thread</td><td>126 · 95 · 1024 = 12.257.280</td></tr>
+		<tr><td>Pixel thật</td><td>12.192.768</td></tr>
+	</tbody>
+</table>
+
+<h2>Bẫy thường gặp</h2>
+
+<ul>
+	<li><strong>Nhầm stride với số byte:</strong> <code>w</code> là số pixel mỗi hàng; nhân với <code>sizeof(T)</code> chỉ khi tính byte.</li>
+	<li><strong>Nhầm <code>blockIdx</code> với <code>threadIdx</code>:</strong> quên nhân <code>blockDim</code> → mọi block ghi cùng một vùng.</li>
+	<li><strong>Quên bounds check:</strong> chỉ sai ở ảnh có kích thước không chia hết — rất khó thấy khi test bằng ảnh vuông 1024×1024.</li>
+	<li><strong>Đổi trục:</strong> hoán vị <code>x</code>/<code>y</code> làm hỏng cả địa chỉ lẫn hiệu năng.</li>
+	<li><strong>Tưởng kernel thấy cả object ảnh:</strong> kernel chỉ có tham số; kích thước phải truyền vào.</li>
+	<li><strong>Trộn <code>int</code> và <code>uint64_t</code>:</strong> <code>blockIdx·blockDim</code> là <code>unsigned int</code>; ảnh lớn hơn 2³² pixel là không thực tế, nhưng so sánh có dấu/không dấu thì cần để ý.</li>
+</ul>
+
+<h2>Glossary</h2>
+
+<table>
+	<thead><tr><th>Anh</th><th>Việt</th><th>Ghi chú</th></tr></thead>
+	<tbody>
+		<tr><td>grid</td><td>lưới block</td><td>đơn vị của một lần launch</td></tr>
+		<tr><td>block</td><td>khối thread</td><td>đơn vị lập lịch lên SM</td></tr>
+		<tr><td>warp</td><td>nhóm 32 thread</td><td>đơn vị thực thi thật của phần cứng</td></tr>
+		<tr><td>global index</td><td>chỉ số toàn cục</td><td>toạ độ trong toàn bộ grid</td></tr>
+		<tr><td>stride</td><td>bước nhảy</td><td>ở đây là <code>w</code>, số pixel mỗi hàng</td></tr>
+		<tr><td>bounds check</td><td>kiểm tra biên</td><td>chặn thread vượt kích thước</td></tr>
+		<tr><td>coalesced access</td><td>truy cập gộp</td><td>các thread trong warp đọc địa chỉ liên tiếp</td></tr>
+		<tr><td>row-major</td><td>lưu theo hàng</td><td>hàng 0 trước, rồi hàng 1…</td></tr>
+	</tbody>
+</table>
+
+<footer>
+	<p>Cheat sheet đi kèm <a href="../lessons/0001-thread-index-va-bounds.html">Lesson 0001</a>. Nguồn: Slides 02, CUDA C++ Programming Guide (Thread Hierarchy).</p>
+</footer>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0001 — Thread nào phụ trách pixel nào?</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="wrap">
+
+<nav class="breadcrumb">
+	<a href="../MISSION.md">learn</a> / lessons / 0001
+</nav>
+
+<h1>Thread nào phụ trách pixel nào?</h1>
+<p class="lede">Một thắng lợi duy nhất: nhìn cấu hình launch và nói ngay được mỗi thread làm gì — và thread nào là thread dư.</p>
+
+<div class="win">
+	<span class="label">Sau bài này</span>
+	Bạn đọc <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code> và suy ra được toạ độ toàn cục (global index) của bất kỳ thread nào, biết khi nào bắt buộc phải chặn thread, và biết vì sao trục nhanh nhất nên đi theo <code>threadIdx.x</code>.
+</div>
+
+<h2>1. Ba tầng, không hơn</h2>
+
+<p>Một lần launch sinh ra một <strong>grid</strong> (lưới). Grid chia thành các <strong>block</strong>. Mỗi block gồm các <strong>thread</strong>. Cả ba tầng đều có toạ độ, và mỗi thread chỉ biết <em>toạ độ của chính nó</em> — không thread nào biết "ảnh" là gì, không có vòng lặp duyệt ảnh. Ảnh được xử lý xong vì có hàng triệu thread chạy song song, mỗi thread một pixel.</p>
+
+<div class="figure">grid (gridDim.x × gridDim.y)
+├── block (0,0)   blockDim.x × blockDim.y  thread
+├── block (1,0)   ├── thread (0,0)  ← threadIdx = (0,0)
+├── block (2,0)   ├── thread (1,0)
+└── ...           └── ...
+                  blockIdx = (1,0) ở đây</div>
+
+<table>
+	<thead>
+		<tr><th>Biến</th><th>Kiểu</th><th>Nghĩa</th><th>Ai đặt</th></tr>
+	</thead>
+	<tbody>
+		<tr><td><code>threadIdx</code></td><td><code>uint3</code></td><td>Toạ độ trong block</td><td>Phần cứng, mỗi thread khác nhau</td></tr>
+		<tr><td><code>blockIdx</code></td><td><code>uint3</code></td><td>Toạ độ của block trong grid</td><td>Phần cứng, mỗi block khác nhau</td></tr>
+		<tr><td><code>blockDim</code></td><td><code>uint3</code></td><td>Số thread mỗi block</td><td>Bạn, lúc launch</td></tr>
+		<tr><td><code>gridDim</code></td><td><code>uint3</code></td><td>Số block mỗi grid</td><td>Bạn, lúc launch</td></tr>
+	</tbody>
+</table>
+
+<div class="warn">
+	<span class="label">Bẫy phổ biến</span>
+	Kernel <strong>không thấy</strong> object ảnh. Nó chỉ thấy những gì được truyền vào trong dấu ngoặc của lần launch: con trỏ dữ liệu và các kích thước. Kích thước ảnh <em>không</em> phải "extract" từ đâu cả — chúng đã là tham số. Nếu bạn viết một biến như <code>numRows</code> mà chưa khai báo, đó là lỗi biên dịch, không phải tính năng còn thiếu.
+</div>
+
+<h2>2. Từ ID cục bộ ra toạ độ toàn cục</h2>
+
+<p>Toạ độ toàn cục = phần bù của block + phần lệch trong block:</p>
+
+<span class="math">x = blockIdx.x · blockDim.x + threadIdx.x<br>y = blockIdx.y · blockDim.y + threadIdx.y</span>
+
+<p>Ví dụ với block 32×32, <code>blockIdx = (3, 2)</code>, <code>threadIdx = (5, 7)</code>:</p>
+
+<ul>
+	<li><code>x = 3 · 32 + 5 = 101</code></li>
+	<li><code>y = 2 · 32 + 7 = 71</code></li>
+</ul>
+
+<p>Đây là toàn bộ "phép thuật" của CUDA: phần cứng không biết pixel là gì, nó chỉ cấp cho mỗi thread một ID, và bạn tự quy đổi ID đó thành toạ độ.</p>
+
+<details>
+	<summary>Tự kiểm tra: blockIdx = (0,0), threadIdx = (31,31) → toạ độ nào?</summary>
+	<div class="body">
+		<p><code>x = 0 · 32 + 31 = 31</code>, <code>y = 0 · 32 + 31 = 31</code>. Đây là thread cuối cùng của block đầu tiên — góc dưới-phải của ô 32×32 đầu tiên.</p>
+	</div>
+</details>
+
+<h2>3. Vì sao phải chặn thread (bounds check)</h2>
+
+<p>Số block được làm tròn <strong>lên</strong>: <code>grid = ceil(kích_thước / block)</code>. Với ảnh Cornell 4032×3024 và block 32×32:</p>
+
+<ul>
+	<li><code>grid.x = 4032 / 32 = 126</code> — chia hết.</li>
+	<li><code>grid.y = ceil(3024 / 32) = 95</code> — vì <code>3024 / 32 = 94,5</code>.</li>
+</ul>
+
+<p>Nhưng <code>95 · 32 = 3040</code> hàng thread, trong khi ảnh chỉ có 3024 hàng. Nghĩa là <strong>16 hàng thread dư</strong>, tức <code>16 · 4032 = 64.512</code> thread không có pixel để làm. Nếu chúng vẫn ghi, chúng ghi ra ngoài vùng nhớ đã cấp — hỏng dữ liệu khác hoặc crash.</p>
+
+<div class="note">
+	<span class="label">Quy tắc</span>
+	Một điều kiện duy nhất, kiểm tra cả hai trục: nếu <code>x ≥ w</code> hoặc <code>y ≥ h</code> thì thread đó dừng, không đọc và không ghi. Không cần điều kiện thứ hai, không cần kiểm tra con trỏ.
+</div>
+
+<p>Câu hỏi để tự trả lời: nếu ảnh chia hết cho 32 ở cả hai chiều thì có được bỏ kiểm tra không? (Gợi ý: hàm của bạn sẽ được gọi với ảnh khác trong bài sau.)</p>
+
+<h2>4. Từ toạ độ ra địa chỉ bộ nhớ</h2>
+
+<p>Dữ liệu ảnh là mảng một chiều, lưu theo hàng (row-major). Địa chỉ của pixel <code>(x, y)</code> là:</p>
+
+<span class="math">idx = x + y · w</span>
+
+<p>Trong đó <code>w</code> là <strong>số cột</strong> (số pixel mỗi hàng) — không phải số byte mỗi hàng. Nhầm hai thứ này là lỗi kinh điển.</p>
+
+<p>Hệ quả về hiệu năng: các thread có <code>threadIdx.x</code> liên tiếp sẽ xử lý các <code>x</code> liên tiếp → địa chỉ liên tiếp → một lần đọc bộ nhớ phục vụ cả warp (<em>coalesced access</em>). Nếu bạn đảo vai trò hai trục, mỗi thread nhảy cách nhau <code>w</code> pixel và băng thông bộ nhớ sụt mạnh.</p>
+
+<h2>5. Kiểm tra nhanh</h2>
+
+<div class="quiz">
+	<p class="q">Câu 1. Với block 32×32, <code>blockIdx = (3,2)</code>, <code>threadIdx = (5,7)</code>, toạ độ toàn cục là?</p>
+	<ol>
+		<li>x = 101, y = 71</li>
+		<li>x = 101, y = 39</li>
+		<li>x = 37, y = 71</li>
+	</ol>
+</div>
+
+<details>
+	<summary>Đáp án câu 1</summary>
+	<div class="body">
+		<p><strong>A.</strong> <code>x = 3·32+5 = 101</code>, <code>y = 2·32+7 = 71</code>. Đáp án B lấy nhầm <code>2·16+7</code>, đáp án C lấy nhầm <code>1·32+5</code>.</p>
+	</div>
+</details>
+
+<div class="quiz">
+	<p class="q">Câu 2. Ảnh 4032×3024, block 32×32. <code>grid.y</code> bằng bao nhiêu?</p>
+	<ol>
+		<li>94</li>
+		<li>95</li>
+		<li>96</li>
+	</ol>
+</div>
+
+<details>
+	<summary>Đáp án câu 2</summary>
+	<div class="body">
+		<p><strong>B.</strong> <code>ceil(3024/32) = ceil(94,5) = 95</code>. Chọn 94 sẽ thiếu nửa hàng cuối; chọn 96 là làm tròn lên hai lần, thừa hẳn một block theo trục y.</p>
+	</div>
+</details>
+
+<div class="quiz">
+	<p class="q">Câu 3. Một thread có <code>x ≥ w</code> (vượt mép phải) nên làm gì?</p>
+	<ol>
+		<li>Ghi vào pixel cuối hàng</li>
+		<li>Ghi vào hàng kế tiếp</li>
+		<li>Bỏ qua, không ghi gì</li>
+	</ol>
+</div>
+
+<details>
+	<summary>Đáp án câu 3</summary>
+	<div class="body">
+		<p><strong>C.</strong> Thread dư không đại diện cho pixel nào. "Ghi vào pixel cuối hàng" sẽ khiến nhiều thread cùng ghi một chỗ (race) và làm sai ảnh; "ghi vào hàng kế tiếp" là ghi sai địa chỉ.</p>
+	</div>
+</details>
+
+<h2>6. Đọc thêm</h2>
+
+<ul>
+	<li><strong>Nguồn chính:</strong> <a href="../../slides/02-Programming_Massively_Parallel_Processors-Programming_Model.pdf">Slides 02 — Programming Model</a>, phần thread/block/grid và ví dụ index.</li>
+	<li>Tra cứu nhanh: <a href="../reference/cuda-indexing.html">Cheat sheet — Indexing &amp; bounds</a>.</li>
+	<li>Tài liệu gốc: <a href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/#thread-hierarchy">CUDA C++ Programming Guide — Thread Hierarchy</a>.</li>
+</ul>
+
+<footer>
+	<p>Có chỗ nào chưa rõ, hỏi lại agent — mình là teacher của bạn, không phải công cụ sinh code. Bài tiếp theo (0002) sẽ là memory model: managed memory vs device memory, gắn với bài 1.1b và 1.3.</p>
+</footer>
+
+</main>
+</body>
+</html>
