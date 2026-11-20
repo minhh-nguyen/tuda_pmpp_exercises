@@ -111,7 +111,27 @@ __global__ void histogram_kernel(
 	std::uint8_t channel_flags = 1)
 {
 	//TODO: 1.4) Implement histogram computation
+	auto x = (blockIdx.x * blockDim.x) + threadIdx.x;
+
+	if(x >= w)
+		return;
+
+	for(int row = 0; row < h; ++row)
+	{
+		uint32_t pixel = img_data[x + row * w];
+		unsigned char r = pixel & 0xff;
+		unsigned char g = (pixel >> 8) & 0xff;
+		unsigned char b = (pixel >> 16) & 0xff;
+
+		if(channel_flags & 1)
+			atomicAdd(&hist_data[r / (256 / num_bins)], 1);
+		if(channel_flags & 2)
+			atomicAdd(&hist_data[g / (256 / num_bins)], 1);
+		if(channel_flags & 4)
+			atomicAdd(&hist_data[b / (256 / num_bins)], 1);
+	}
 }
+
 void compute_histogram(gpu_matrix<std::uint32_t>& hist, gpu_image const& img)
 {
 	std::uint8_t channel_flags = 1;

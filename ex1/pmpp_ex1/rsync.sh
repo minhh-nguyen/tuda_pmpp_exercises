@@ -12,4 +12,5 @@ rsync -avz --delete \
     --exclude='rsync.sh' \
     --exclude='.zed' \
     --exclude='.vscode' \
+    --exclude='out' \
     "${SRC}/" "${REMOTE}:${DEST}"
