@@ -1,12 +1,16 @@
-
 #include "image.h"
 #include "pointer.h"
 #include "filtering.h"
 
 #include <format>
 
-enum class log_level {INFO, WARNING, ERROR};
-void log(log_level lvl, std::string const & s)
+enum class log_level
+{
+	INFO,
+	WARNING,
+	ERROR
+};
+void log(log_level lvl, std::string const& s)
 {
 	std::fputs(s.c_str(), lvl == log_level::ERROR ? stderr : stdout);
 	std::fflush(lvl == log_level::ERROR ? stderr : stdout);
@@ -38,24 +42,24 @@ cpu_filter create_filter(bool horizontal)
 	auto filter_cpu = make_cpu_filter(3, 3);
 	if(horizontal)
 	{
-		filter_cpu.data[0] =  1.f;
-		filter_cpu.data[1] =  0.f;
+		filter_cpu.data[0] = 1.f;
+		filter_cpu.data[1] = 0.f;
 		filter_cpu.data[2] = -1.f;
-		filter_cpu.data[3] =  2.f;
-		filter_cpu.data[4] =  0.f;
+		filter_cpu.data[3] = 2.f;
+		filter_cpu.data[4] = 0.f;
 		filter_cpu.data[5] = -2.f;
-		filter_cpu.data[6] =  1.f;
-		filter_cpu.data[7] =  0.f;
+		filter_cpu.data[6] = 1.f;
+		filter_cpu.data[7] = 0.f;
 		filter_cpu.data[8] = -1.f;
 	}
 	else
 	{
-		filter_cpu.data[0] =  1.f;
-		filter_cpu.data[1] =  2.f;
-		filter_cpu.data[2] =  1.f;
-		filter_cpu.data[3] =  0.f;
-		filter_cpu.data[4] =  0.f;
-		filter_cpu.data[5] =  0.f;
+		filter_cpu.data[0] = 1.f;
+		filter_cpu.data[1] = 2.f;
+		filter_cpu.data[2] = 1.f;
+		filter_cpu.data[3] = 0.f;
+		filter_cpu.data[4] = 0.f;
+		filter_cpu.data[5] = 0.f;
 		filter_cpu.data[6] = -1.f;
 		filter_cpu.data[7] = -2.f;
 		filter_cpu.data[8] = -1.f;

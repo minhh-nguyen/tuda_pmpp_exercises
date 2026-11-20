@@ -106,11 +106,12 @@ cpu_image load(std::string const& path)
 	if(line[0] != 'P' || line[1] != '6')
 		throw std::runtime_error("Invalid identification string");
 
-	// Skip comment
+	//Skip comment
 	while(is.peek() == '#')
 		is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-	is >> img.width; is >> img.height;
+	is >> img.width;
+	is >> img.height;
 	img.data = make_host_array<std::uint32_t>(img.width * img.height);
 
 	unsigned short max;
@@ -120,13 +121,15 @@ cpu_image load(std::string const& path)
 
 	is.ignore(1, '\n');
 
-	// Read pixels into temporary buffer
+	//Read pixels into temporary buffer
 	auto tmp = make_host_array<unsigned char>(img.width * img.height * 3);
 	is.read(reinterpret_cast<char*>(tmp.get()), img.width * img.height * 3);
 
-	// Convert RGB to RGBA
-	for(std::uint64_t y = 0; y < img.height; y++) {
-		for(std::uint64_t x = 0; x < img.width; x++) {
+	//Convert RGB to RGBA
+	for(std::uint64_t y = 0; y < img.height; y++)
+	{
+		for(std::uint64_t x = 0; x < img.width; x++)
+		{
 			std::uint64_t idx = y * img.width * 3 + x * 3;
 			unsigned char r = tmp[idx], g = tmp[idx + 1], b = tmp[idx + 2];
 			img.data[y * img.width + x] = r | (g << 8) | (b << 16);
@@ -150,14 +153,18 @@ bool save(std::string const& path, cpu_image const& img)
 	os << img.height << std::endl;
 	os << "255" << std::endl;
 
-	// Convert RGBA to RGB
+	//Convert RGBA to RGB
 	auto tmp = make_host_array<unsigned char>(img.width * img.height * 3);
-	for(std::uint64_t y = 0; y < img.height; y++) {
-		for(std::uint64_t x = 0; x < img.width; x++) {
+	for(std::uint64_t y = 0; y < img.height; y++)
+	{
+		for(std::uint64_t x = 0; x < img.width; x++)
+		{
 			std::uint64_t idx = y * img.width * 3 + x * 3;
 			std::uint32_t rgba = img.data[y * img.width + x];
 			unsigned char r = rgba & 0xff, g = (rgba >> 8) & 0xff, b = (rgba >> 16) & 0xff;
-			tmp[idx] = r; tmp[idx + 1] = g; tmp[idx + 2] = b;
+			tmp[idx] = r;
+			tmp[idx + 1] = g;
+			tmp[idx + 2] = b;
 		}
 	}
 	os.write(reinterpret_cast<const char*>(tmp.get()), img.width * img.height * 3);
